@@ -38,17 +38,23 @@ void sha512sum(const uint8_t *data, const int32_t data_size, uint8_t *sha512){
 uint32_t encrypt(const uint8_t *plaintext, const int32_t plaintext_length, const uint8_t *key, uint8_t *ciphertext){
   int offset;
   int ciphertext_length;
+
   // Create context
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+
   // Setup context
   EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, AES_256_IV);
+
   // Start encryption
   EVP_EncryptUpdate(ctx, ciphertext, &offset, plaintext, plaintext_length);
+
   // Store current encryption offset
   ciphertext_length = offset;
+
   // Complete encryption
   EVP_EncryptFinal_ex(ctx, ciphertext + offset, &offset);
   ciphertext_length += offset;
+
   // Free context
   EVP_CIPHER_CTX_free(ctx);
   return ciphertext_length;
@@ -58,20 +64,27 @@ uint32_t encrypt(const uint8_t *plaintext, const int32_t plaintext_length, const
 uint32_t decrypt(const uint8_t *ciphertext, const int32_t ciphertext_length, const uint8_t *key, uint8_t *plaintext){
   int length;
   int plaintext_length;
+
   // Create context
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+
   // Setup decryption
   EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, AES_256_IV);
+
   // Start decryption
   EVP_DecryptUpdate(ctx, plaintext, &length, ciphertext, ciphertext_length);
+
   // Store current decryption offset
   plaintext_length = length;
+
   // Complete decryption
   if (EVP_DecryptFinal_ex(ctx, plaintext + length, &length) <= 0) {
-	EVP_CIPHER_CTX_free(ctx);
-	return -1; // Something wrong happened
+    EVP_CIPHER_CTX_free(ctx);
+    return -1; // Something wrong happened
   }
+
   plaintext_length += length;
+
   // Free context
   EVP_CIPHER_CTX_free(ctx);
   return plaintext_length;
@@ -80,8 +93,8 @@ uint32_t decrypt(const uint8_t *ciphertext, const int32_t ciphertext_length, con
 // Compare if 2 sha512 are equals
 int32_t sha512cmp(uint8_t *sha1, uint8_t *sha2){
   for (int32_t i = 0; i < SHA512_DIGEST_LENGTH ; i++){
-	if (sha1[i] != sha2[i])
-	  return 1;
+    if (sha1[i] != sha2[i])
+      return 1;
   }
   return 0;
 }
