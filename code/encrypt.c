@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "utils.h"
 
+// Run ./encrypt <file> <password> to generate own <file>.enc and <file>.sha512 test cases
+// Short password = fast to crack, Long password = slower 
 
 int main(int argc, char *argv[]) {
 
@@ -45,7 +47,7 @@ int main(int argc, char *argv[]) {
   strcat(encname,argv[1]);
   strcat(encname,".sha512");
   file_save(encname, checksum,SHA512_DIGEST_LENGTH);
-  
+
   // Free the allocated memory
   free(buffer1);
   free(buffer2);

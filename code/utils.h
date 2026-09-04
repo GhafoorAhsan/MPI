@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#define MAX_FILE_SIZE_MB 1
+#define MAX_FILE_SIZE_MB 1 // 1 MB, keep test files tiny 
 #define MAX_FILE_SIZE_B (1024*1024*MAX_FILE_SIZE_MB)
 
 int32_t file_load(const char *file_path, uint8_t *data);

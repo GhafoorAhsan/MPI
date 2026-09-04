@@ -60,7 +60,7 @@ uint32_t encrypt(const uint8_t *plaintext, const int32_t plaintext_length, const
   return ciphertext_length;
 }
 
-
+// Returns -1 on failure 
 uint32_t decrypt(const uint8_t *ciphertext, const int32_t ciphertext_length, const uint8_t *key, uint8_t *plaintext){
   int length;
   int plaintext_length;
@@ -78,7 +78,7 @@ uint32_t decrypt(const uint8_t *ciphertext, const int32_t ciphertext_length, con
   plaintext_length = length;
 
   // Complete decryption
-  if (EVP_DecryptFinal_ex(ctx, plaintext + length, &length) <= 0) {
+  if (EVP_DecryptFinal_ex(ctx, plaintext + length, &length) <= 0) { // validates PKCS padding. Wrong key produces garbage that fails the padding check
     EVP_CIPHER_CTX_free(ctx);
     return -1; // Something wrong happened
   }
@@ -90,6 +90,7 @@ uint32_t decrypt(const uint8_t *ciphertext, const int32_t ciphertext_length, con
   return plaintext_length;
 }
 
+// Defnintiv check : decrypt succeeded + sha512cmp(stored, computed) == 0
 // Compare if 2 sha512 are equals
 int32_t sha512cmp(uint8_t *sha1, uint8_t *sha2){
   for (int32_t i = 0; i < SHA512_DIGEST_LENGTH ; i++){
@@ -98,3 +99,6 @@ int32_t sha512cmp(uint8_t *sha1, uint8_t *sha2){
   }
   return 0;
 }
+
+
+// Only Call these function, do not need to modify 

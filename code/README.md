@@ -8,7 +8,7 @@ Executing the `make` command will build the code example and the tool for encryp
 
 **Important note:** If you encrypt your own files with external tools you must ensure that the proper salt and Initialization Vector are used.
 
-# Cluster access
+## Cluster access
 
 The Computer Science department has a cluster of nodes that can be used to run your solution. By copying your files on the front-end (ificluster.ifi.uit.no) you will be able to access them from all the other nodes (shared file system). Be mindful of your processes and remember to quit them properly, as resources are shared among all users. In order to login to the cluster from Linux, use:
 
