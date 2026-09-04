@@ -7,12 +7,14 @@ int32_t file_load(const char *file_path, uint8_t *data){
   uint8_t buffer[32];
   int32_t file_size=0;
   int32_t bytes_read;
+  
   while ((bytes_read = fread(buffer, 1, 32, file)) > 0) {
-	if(file_size+32 > MAX_FILE_SIZE_B)
-	  return -2;
-	memcpy(data+file_size,buffer,bytes_read);
-	file_size+= bytes_read;
+    if(file_size+32 > MAX_FILE_SIZE_B)
+      return -2;
+    memcpy(data+file_size,buffer,bytes_read);
+    file_size+= bytes_read;
   }
+
   fclose(file);
   return file_size;
 }
