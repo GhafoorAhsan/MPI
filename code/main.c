@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
   double elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9; // 1000000000
   printf("Elapsed time: %f seconds\n", elapsed_time);
   return 0;
+
 }
 
 
