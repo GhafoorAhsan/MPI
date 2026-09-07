@@ -7,7 +7,6 @@
 
 struct timespec start, end; 
 
-
 #define CHARSET_SIZE 62
 
 // Character set used for passwords [0-9a-zA-Z]
@@ -50,6 +49,7 @@ int main(int argc, char *argv[]) {
 
   // Timing starts here 
   clock_gettime(CLOCK_MONOTONIC, &start);
+  
   for (int L = 1; !found; L++) {
     uint64_t num_guess = (uint64_t)pow(62, L);
     char pwd [L+1];

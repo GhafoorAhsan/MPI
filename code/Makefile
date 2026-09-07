@@ -33,5 +33,8 @@ encrypt: encrypt.c aes256.c utils.c
 mainMPI: mainMPI.c aes256.c utils.c
 	mpicc $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
+mainMPI_opt: mainMPI_opt.c aes256.c utils.c
+	mpicc $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+
 clean:
-	@rm -f main encrypt mainMPI
+	@rm -f main encrypt mainMPI mainMPI_opt

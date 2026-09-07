@@ -9,6 +9,7 @@
 struct timespec start, end;
 
 #define CHARSET_SIZE 62
+#define CHECK_INTERVAL 1000 // Check every 1000 rounds 
 
 // Character set used for passwords [0-9a-zA-Z]
 char CHARSET[CHARSET_SIZE]={
@@ -67,25 +68,49 @@ int main(int argc, char *argv[]) {
 
         char pwd [L+1];
 
-        for (uint64_t i = partition_start; i < partition_end && !found; i++) {
+        uint64_t num_checkpoints = chunk_size / CHECK_INTERVAL;
+        uint64_t pos = partition_start; 
 
-            index_to_password(i, L, pwd);
-            pbkdf2(pwd, L, key);
-            int32_t plaintext_length = decrypt(ciphertext, ciphertext_length, key, plaintext);
+        for (uint64_t round = 0; round < num_checkpoints && !global_found; round++) {
+            uint64_t round_end = pos + CHECK_INTERVAL; 
+            for (; pos < round_end && !found; pos++) {
+                index_to_password(pos, L, pwd);
+                pbkdf2(pwd, L, key);
+                int32_t plaintext_length = decrypt(ciphertext, ciphertext_length, key, plaintext);
 
-            if(plaintext_length >= 0) { 
-
-                sha512sum(plaintext,plaintext_length,computed_checksum);
-                if(sha512cmp(plaintext_checksum,computed_checksum) == 0) { 
-                    found = 1;
-                    clock_gettime(CLOCK_MONOTONIC, &end);
-                    plaintext[plaintext_length]='\0'; 
-                    printf("Encrypted file contains: %s\n",plaintext);
-                    printf("%s\n", pwd);
+                if(plaintext_length >= 0) { 
+                    sha512sum(plaintext,plaintext_length,computed_checksum);
+                    if(sha512cmp(plaintext_checksum,computed_checksum) == 0) { 
+                        found = 1;
+                        clock_gettime(CLOCK_MONOTONIC, &end);
+                        plaintext[plaintext_length]='\0'; 
+                        printf("Encrypted file contains: %s\n",plaintext);
+                        printf("%s\n", pwd);
+                    }
                 }
             }
+            MPI_Allreduce(&found, &global_found, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
         }
-        MPI_Allreduce(&found, &global_found, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+
+        if (!global_found) {
+            for (; pos < partition_end && !found; pos++) {
+                index_to_password(pos, L, pwd);
+                pbkdf2(pwd, L, key);
+                int32_t plaintext_length = decrypt(ciphertext, ciphertext_length, key, plaintext);
+
+                if(plaintext_length >= 0) { 
+                    sha512sum(plaintext,plaintext_length,computed_checksum);
+                    if(sha512cmp(plaintext_checksum,computed_checksum) == 0) { 
+                        found = 1;
+                        clock_gettime(CLOCK_MONOTONIC, &end);
+                        plaintext[plaintext_length]='\0'; 
+                        printf("Encrypted file contains: %s\n",plaintext);
+                        printf("%s\n", pwd);
+                    }
+                }
+            }
+            MPI_Allreduce(&found, &global_found, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+        }
     }
     MPI_Finalize(); // Finalize the MPI Environment 
     if (found) {
