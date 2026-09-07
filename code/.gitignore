@@ -1,0 +1,9 @@
+# Ignore macOS folder attributes
+.DS_Store
+**/.DS_Store
+
+# Ignorer VS Code-innstillinger
+.vscode/
+
+# Ignorer kompileringsdatabaser for C/C++ og verktøy som clangd
+compile_commands.json

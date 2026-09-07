@@ -13,10 +13,10 @@
 int32_t pbkdf2(const char *password, const int32_t password_len, uint8_t *key);
 
 // Encrypt with AES-256
-uint32_t encrypt(const uint8_t *plaintext, const int32_t plaintext_length, const uint8_t *key, uint8_t *ciphertext);
+int32_t encrypt(const uint8_t *plaintext, const int32_t plaintext_length, const uint8_t *key, uint8_t *ciphertext);
 
 // Decrypt with AES-256
-uint32_t decrypt(const uint8_t *ciphertext, const int32_t ciphertext_length, const uint8_t *key, uint8_t *plaintext);
+int32_t decrypt(const uint8_t *ciphertext, const int32_t ciphertext_length, const uint8_t *key, uint8_t *plaintext);
 
 /*
   sha512 should be of length SHA512_DIGEST_LENGTH (64 bytes)

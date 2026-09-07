@@ -1,17 +1,3 @@
-# all: main encrypt
-
-# main: main.c aes256.c utils.c
-# 	gcc $^ -o $@ -lcrypto
-
-# encrypt: encrypt.c aes256.c utils.c
-# 	gcc $^ -o $@ -lcrypto
-
-# mainMPI: mainMPI.c aes256.c utils.c
-# 	mpicc $^ -o $@ -lcrypto
-
-# clean:
-# 	@rm main encrypt
-
 UNAME := $(shell uname -s)
 
 ifeq ($(UNAME),Darwin)
@@ -22,7 +8,7 @@ endif
 
 LDLIBS += -lcrypto
 
-all: main encrypt
+all: main encrypt mainMPI mainMPI_opt main_seq
 
 main: main.c aes256.c utils.c
 	gcc $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
@@ -36,5 +22,8 @@ mainMPI: mainMPI.c aes256.c utils.c
 mainMPI_opt: mainMPI_opt.c aes256.c utils.c
 	mpicc $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
+main_seq: main_seq.c aes256.c utils.c
+	mpicc $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+
 clean:
-	@rm -f main encrypt mainMPI mainMPI_opt
+	@rm -f main encrypt mainMPI mainMPI_opt main_seq
