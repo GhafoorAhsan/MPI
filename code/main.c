@@ -25,47 +25,26 @@ void index_to_password(uint64_t index, int L, char *pwd) {
   pwd[L] = '\0'; // Null terminate for the string 
 }
 
-// Hardcoded password "abc". Template for inner loop, not the solution
 int main(int argc, char *argv[]) {
   uint8_t key[AES_256_KEY_LENGTH]; // Stores the generate AES key
-
-  // uint8_t ciphertext[100]; // Stores encrypted data, size this to MAX_FILE_SIZE_B for bigger test 
-  uint8_t ciphertext[MAX_FILE_SIZE_B]; // Stores encrypted data, size this to MAX_FILE_SIZE_B for bigger test 
-
-  // uint8_t plaintext[100]; // Stores decrypted data
+  uint8_t ciphertext[MAX_FILE_SIZE_B]; // Stores encrypted data
   uint8_t plaintext[MAX_FILE_SIZE_B]; // Stores decrypted data
-  
   uint8_t plaintext_checksum[SHA512_DIGEST_LENGTH]; // Stores the original file sha512 sum
   uint8_t computed_checksum[SHA512_DIGEST_LENGTH]; // Stores the decrypted file sha512 sum
 
-  // char password[]="abc"; // Stores the user supplied password
+  char enc_path[300];
+  char sha512_path[300];
 
-  // pbkdf2(password, 3, key); // Generate the AES-256 key from the password
+  if (argc < 2) {
+    printf("Usage: %s <file_base_path>\n", argv[0]);
+    return -1;
+  } else {
+    snprintf(enc_path, sizeof(enc_path), "%s.enc", argv[1]);
+    snprintf(sha512_path, sizeof(sha512_path), "%s.sha512", argv[1]);
+  }
 
-  uint32_t ciphertext_length = file_load("./files/myfile.enc", ciphertext); // Load encrypted file into memory
-  // // Bug? Should be "./files/..."
-  // // file_load("/files/myfile.sha512",plaintext_checksum); // Load the original file checksum
-
-  file_load("./files/myfile.sha512",plaintext_checksum); // Load the original file checksum
-
-  // int32_t plaintext_length=decrypt(ciphertext, ciphertext_length, key, plaintext); // Try to decrypt and retrieve the decripted file length
-  
-  // if(plaintext_length>=0){ // Ensure decryption succeeded
-  //   sha512sum(plaintext,plaintext_length,computed_checksum); // Compute decrypted data sha512 sum
-
-  //   // if(sha512cmp(plaintext_checksum,computed_checksum)){ // If sha512 match with the original file we succeeded
-  //   //   plaintext[plaintext_length]='\0'; // Make plaintext data "printable"
-  //   //   printf("Encrypted file contains: %s\n",plaintext); // Print decrypted data
-  //   // }
-  //   if(sha512cmp(plaintext_checksum,computed_checksum) == 0){ // If sha512 match with the original file we succeeded
-  //     plaintext[plaintext_length]='\0'; // Make plaintext data "printable"
-  //     printf("Encrypted file contains: %s\n",plaintext); // Print decrypted data
-  //   }
-  // }
-
-  // char test[4];
-  // index_to_password(62, 2, test);
-  // printf("%s\n", test); // Should print 01C for index = 100, L = 3, pwd = test, Should print 010 for index = 62, L = 3, pwd = test, 10 for index = 62, L = 2, pwd = test
+  uint32_t ciphertext_length = file_load(enc_path, ciphertext); // Load encrypted file into memory
+  file_load(sha512_path, plaintext_checksum); // Load the original file checksum
 
   int found = 0;
 
@@ -94,3 +73,5 @@ int main(int argc, char *argv[]) {
   printf("Elapsed time: %f seconds\n", elapsed_time);
   return 0;
 }
+
+
