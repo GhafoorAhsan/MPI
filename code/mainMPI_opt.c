@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
     int rank, size; 
 
     // Timing starts here 
+    MPI_Barrier(MPI_COMM_WORLD); // Ensure all processes start timing at the same time 
     clock_gettime(CLOCK_MONOTONIC, &start);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -63,15 +64,24 @@ int main(int argc, char *argv[]) {
         uint64_t num_guess = (uint64_t)pow(62, L);
         uint64_t chunk_size = num_guess / size;
         uint64_t remainder = num_guess % size;
+        // We calculate the start and end indices for each process, taking into account the remainder
         uint64_t partition_start = rank * chunk_size + (rank < remainder ? rank : remainder);
+        // (rank+1) computes where the NEXT rank's chunk would start, which is exactly this rank's own exclusive end boundary
         uint64_t partition_end = (rank + 1) * chunk_size + ((rank + 1) < remainder ? (rank + 1) : remainder);
 
         char pwd [L+1];
 
+        // Checking in every CHECK_INTERVAL guesses (instead of once per L) means MORE Allreduce calls, trading communication
+        // overhead for less wasted work after an early find. num_checkpoints is derived from chunk_size (identical on every
+        // rank), not this rank's own partition size, so every rank computes the same checkpoint count, using partition
+        // size could differ by 1 due to the remainder and desync the Allreduce call counts.
         uint64_t num_checkpoints = chunk_size / CHECK_INTERVAL;
         uint64_t pos = partition_start; 
 
-        for (uint64_t round = 0; round < num_checkpoints && !global_found; round++) {
+        // Must be global_found, not found: Allreduce is collective, so every rank must call it the same number of times.
+        // If a rank stopped this loop as soon as its OWN found became true, it would make fewer Allreduce calls than ranks
+        // still searching, and they'd hang waiting for it forever.
+        for (uint64_t round = 0; round < num_checkpoints && !global_found; round++) { 
             uint64_t round_end = pos + CHECK_INTERVAL; 
             for (; pos < round_end && !found; pos++) {
                 index_to_password(pos, L, pwd);
@@ -82,7 +92,6 @@ int main(int argc, char *argv[]) {
                     sha512sum(plaintext,plaintext_length,computed_checksum);
                     if(sha512cmp(plaintext_checksum,computed_checksum) == 0) { 
                         found = 1;
-                        clock_gettime(CLOCK_MONOTONIC, &end);
                         plaintext[plaintext_length]='\0'; 
                         printf("Encrypted file contains: %s\n",plaintext);
                         printf("%s\n", pwd);
@@ -92,6 +101,8 @@ int main(int argc, char *argv[]) {
             MPI_Allreduce(&found, &global_found, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
         }
 
+        // This block (and its Allreduce) always runs when global_found is still false, even if this rank has 0 guesses
+        // left, skipping it for ranks with nothing left would again desync the Allreduce call count across ranks.
         if (!global_found) {
             for (; pos < partition_end && !found; pos++) {
                 index_to_password(pos, L, pwd);
@@ -102,7 +113,6 @@ int main(int argc, char *argv[]) {
                     sha512sum(plaintext,plaintext_length,computed_checksum);
                     if(sha512cmp(plaintext_checksum,computed_checksum) == 0) { 
                         found = 1;
-                        clock_gettime(CLOCK_MONOTONIC, &end);
                         plaintext[plaintext_length]='\0'; 
                         printf("Encrypted file contains: %s\n",plaintext);
                         printf("%s\n", pwd);
@@ -111,11 +121,20 @@ int main(int argc, char *argv[]) {
             }
             MPI_Allreduce(&found, &global_found, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
         }
+
     }
+
+    // end is stamped here, not inside the match block: capturing it there only measured how fast the ONE rank that
+    // found the password did so locally, not when the whole program actually finished, other ranks could still be
+    // searching for seconds afterward. Stamping it after the loop (a point every rank reaches at the same synchronized
+    // moment, right after the same Allreduce call) measures the real total time.
+    clock_gettime(CLOCK_MONOTONIC, &end);
     MPI_Finalize(); // Finalize the MPI Environment 
+
     if (found) {
         double elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9; // 1000000000
         printf("Elapsed time: %f seconds\n", elapsed_time);
     }
+    
     return 0;
 }
