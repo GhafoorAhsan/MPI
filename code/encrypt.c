@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
 
   int32_t cyphertext_length=encrypt(buffer1, length, key, buffer2);
   char encname[100];
+  encname[0]='\0';
 
 
   // Store encrypted data

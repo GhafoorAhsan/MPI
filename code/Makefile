@@ -23,7 +23,7 @@ mainMPI_opt: mainMPI_opt.c aes256.c utils.c
 	mpicc $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
 main_seq: main_seq.c aes256.c utils.c
-	mpicc $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+	gcc $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
 clean:
 	@rm -f main encrypt mainMPI mainMPI_opt main_seq
