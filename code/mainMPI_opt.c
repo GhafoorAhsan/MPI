@@ -9,7 +9,6 @@
 struct timespec start, end;
 
 #define CHARSET_SIZE 62
-#define CHECK_INTERVAL 1000 // Check every 1000 rounds 
 
 // Character set used for passwords [0-9a-zA-Z]
 char CHARSET[CHARSET_SIZE]={
@@ -37,6 +36,11 @@ int main(int argc, char *argv[]) {
     char enc_path[300];
     char sha512_path[300];
 
+    uint64_t check_interval = 1000;   // the default value
+
+    if (argc >= 3) { 
+        check_interval = atoi(argv[2]);
+    }
     if (argc < 2) {
         printf("Usage: %s <file_base_path>\n", argv[0]);
         MPI_Finalize(); // Finalize the MPI Environment 
@@ -71,18 +75,18 @@ int main(int argc, char *argv[]) {
 
         char pwd [L+1];
 
-        // Checking in every CHECK_INTERVAL guesses (instead of once per L) means MORE Allreduce calls, trading communication
+        // Checking in every check_interval guesses (instead of once per L) means MORE Allreduce calls, trading communication
         // overhead for less wasted work after an early find. num_checkpoints is derived from chunk_size (identical on every
         // rank), not this rank's own partition size, so every rank computes the same checkpoint count, using partition
         // size could differ by 1 due to the remainder and desync the Allreduce call counts.
-        uint64_t num_checkpoints = chunk_size / CHECK_INTERVAL;
+        uint64_t num_checkpoints = chunk_size / check_interval;
         uint64_t pos = partition_start; 
 
         // Must be global_found, not found: Allreduce is collective, so every rank must call it the same number of times.
         // If a rank stopped this loop as soon as its OWN found became true, it would make fewer Allreduce calls than ranks
         // still searching, and they'd hang waiting for it forever.
         for (uint64_t round = 0; round < num_checkpoints && !global_found; round++) { 
-            uint64_t round_end = pos + CHECK_INTERVAL; 
+            uint64_t round_end = pos + check_interval; 
             for (; pos < round_end && !found; pos++) {
                 index_to_password(pos, L, pwd);
                 pbkdf2(pwd, L, key);
@@ -135,6 +139,6 @@ int main(int argc, char *argv[]) {
         double elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9; // 1000000000
         printf("Elapsed time: %f seconds\n", elapsed_time);
     }
-    
+
     return 0;
 }
