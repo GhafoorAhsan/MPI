@@ -6,7 +6,7 @@ ifeq ($(UNAME),Darwin)
 	LDFLAGS += -L$(OPENSSL)/lib
 endif
 
-LDLIBS += -lcrypto
+LDLIBS += -lcrypto -lm
 
 all: main encrypt mainMPI mainMPI_opt main_seq
 

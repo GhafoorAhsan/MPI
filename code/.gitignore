@@ -7,3 +7,10 @@
 
 # Ignorer kompileringsdatabaser for C/C++ og verktøy som clangd
 compile_commands.json
+
+# Compiled binaries -- rebuild with `make`, don't commit
+/main
+/encrypt
+/mainMPI
+/mainMPI_opt
+/main_seq

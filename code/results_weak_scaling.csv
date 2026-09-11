@@ -1,0 +1,5 @@
+experiment,length,password,method,check_interval,np,guesses_per_process,elapsed_seconds
+weak,3,ZZZ,mainMPI,NA,1,238328,2.565020
+weak,4,ZZZZ,mainMPI,NA,62,238328,2.924996
+weak,3,ZZZ,mainMPI_opt,1000,1,238328,2.567718
+weak,4,ZZZZ,mainMPI_opt,1000,62,238328,3.015078
