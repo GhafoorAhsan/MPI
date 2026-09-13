@@ -92,15 +92,14 @@ int main(int argc, char *argv[]) {
         MPI_Allreduce(&found, &global_found, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     }
 
-    // end is stamped here, not inside the match block: capturing it there only measured how fast the ONE rank that
-    // found the password did so locally, not when the whole program actually finished, other ranks could still be
-    // searching for seconds afterward. Stamping it after the loop (a point every rank reaches at the same synchronized
-    // moment, right after the same Allreduce call) measures the real total time.
+    // Capture only measured how fast the ONE rank that found the password did so locally,
+    // not when the whole program actually finished, other ranks could still be
+    // searching for seconds afterward. Stamping it after the loop measures the real total time.
     clock_gettime(CLOCK_MONOTONIC, &end);
     MPI_Finalize(); // Finalize the MPI Environment 
 
     if (found) {
-        double elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9; // 1000000000
+        double elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9; 
         printf("Elapsed time: %f seconds\n", elapsed_time);
     }
 
