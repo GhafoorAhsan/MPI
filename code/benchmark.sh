@@ -3,7 +3,7 @@
 
 NP=4
 OUTFILE="benchmark_results.csv"
-echo "length,method,check_interval,np,elapsed_seconds" > "$OUTFILE"
+echo "length, method, check_interval, np, elapsed_seconds" > "$OUTFILE"
 
 for L in 1 2 3 4; do
   FILE="./files/test${L}"
@@ -13,14 +13,14 @@ for L in 1 2 3 4; do
   LINE=$(mpirun -np $NP ./mainMPI "$FILE" | grep "Elapsed time")
   TIME=$(echo "$LINE" | awk '{print $3}')
 
-  echo "$L,v2,NA,$NP,$TIME" >> "$OUTFILE"
+  echo "$L, v2, NA, $NP, $TIME" >> "$OUTFILE"
 
   for CI in 50 100 200 500 1000; do
 
     echo "== length $L : v3 check_interval=$CI =="
     LINE=$(mpirun -np $NP ./mainMPI_opt "$FILE" $CI | grep "Elapsed time")
     TIME=$(echo "$LINE" | awk '{print $3}')
-    echo "$L,v3,$CI,$NP,$TIME" >> "$OUTFILE"
+    echo "$L, v3, $CI, $NP, $TIME" >> "$OUTFILE"
 
   done
 
