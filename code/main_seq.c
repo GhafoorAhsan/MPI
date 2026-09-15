@@ -47,18 +47,20 @@ int main(int argc, char *argv[]) {
 
   int found = 0;
 
-  // Timing starts here 
   clock_gettime(CLOCK_MONOTONIC, &start);
   
   for (int L = 1; !found; L++) {
+    
     uint64_t num_guess = (uint64_t)pow(62, L);
     char pwd [L+1];
-    for (uint64_t i = 0; i < num_guess && !found; i++) {
+    for (uint64_t i = 0; i < num_guess && !found; i++) {  
       index_to_password(i, L, pwd);
       pbkdf2(pwd, L, key);
       int32_t plaintext_length = decrypt(ciphertext, ciphertext_length, key, plaintext);
+      
       if(plaintext_length>=0){ 
         sha512sum(plaintext,plaintext_length,computed_checksum);
+        
         if(sha512cmp(plaintext_checksum,computed_checksum) == 0){ 
           found = 1;
           clock_gettime(CLOCK_MONOTONIC, &end);

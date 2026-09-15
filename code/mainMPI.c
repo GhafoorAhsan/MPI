@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
 
     if (argc < 2) {
         printf("Usage: %s <file_base_path>\n", argv[0]);
-        MPI_Finalize(); // Finalize the MPI Environment 
+        MPI_Finalize();
         return -1;
     } else {
         snprintf(enc_path, sizeof(enc_path), "%s.enc", argv[1]);
@@ -64,7 +64,6 @@ int main(int argc, char *argv[]) {
     int found = 0;
     int global_found = 0;
 
-    // Timing starts here 
     MPI_Barrier(MPI_COMM_WORLD); // Ensure all processes start timing at the same time 
     
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -76,7 +75,7 @@ int main(int argc, char *argv[]) {
         uint64_t remainder = num_guess % size;
         // We calculate the start and end indices for each process, taking into account the remainder
         uint64_t partition_start = rank * chunk_size + (rank < remainder ? rank : remainder);
-        // (rank+1) computes where the NEXT rank's chunk would start, which is exactly this rank's own exclusive end boundary
+        // (rank+1) computes where the next rank's chunk would start, which is exactly this rank's own exclusive end boundary
         uint64_t partition_end = (rank + 1) * chunk_size + ((rank + 1) < remainder ? (rank + 1) : remainder);
         char pwd [L+1];
 
@@ -101,7 +100,7 @@ int main(int argc, char *argv[]) {
         MPI_Allreduce(&found, &global_found, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     }
 
-    // Capture only measured how fast the ONE rank that found the password did so locally,
+    // Capture only measured how fast the one rank that found the password did so locally,
     // not when the whole program actually finished, other ranks could still be
     // searching for seconds afterward. Stamping it after the loop measures the real total time.
     clock_gettime(CLOCK_MONOTONIC, &end);
