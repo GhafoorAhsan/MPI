@@ -45,20 +45,29 @@ int main(int argc, char *argv[]) {
         snprintf(sha512_path, sizeof(sha512_path), "%s.sha512", argv[1]);
     }
 
-    uint32_t ciphertext_length = file_load(enc_path, ciphertext); // Load encrypted file into memory
-    file_load(sha512_path, plaintext_checksum); // Load the original file checksum
+    int rank, size; 
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+
+    uint32_t ciphertext_length;
+
+    if (rank == 0) {
+        ciphertext_length = file_load(enc_path, ciphertext); // Load the encrypted file into memory only on rank 0
+        file_load(sha512_path, plaintext_checksum); // Load the original file checksum only on rank 0
+    }
+
+    MPI_Bcast(&ciphertext_length, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD); // Broadcast the ciphertext length to all ranks 
+    MPI_Bcast(ciphertext, ciphertext_length, MPI_BYTE, 0, MPI_COMM_WORLD); // Broadcast the ciphertext bytes 
+    MPI_Bcast(plaintext_checksum, SHA512_DIGEST_LENGTH, MPI_BYTE, 0, MPI_COMM_WORLD); // Broadcast the checksum 
 
     int found = 0;
     int global_found = 0;
-    int rank, size; 
 
     // Timing starts here 
     MPI_Barrier(MPI_COMM_WORLD); // Ensure all processes start timing at the same time 
     
     clock_gettime(CLOCK_MONOTONIC, &start);
-    
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     for (int L = 1; !global_found; L++) {
 
